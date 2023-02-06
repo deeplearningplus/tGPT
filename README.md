@@ -2,7 +2,7 @@
 
 ## tGPT
 
-Code and models from the paper ["Language Models are Unsupervised Multitask Learners"](https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf).
+Code and models from the paper ["Generative pretraining from large-scale transcriptomes: Implications for single-cell deciphering and clinical translation"](https://www.biorxiv.org/content/10.1101/2022.01.31.478596v1.full).
 
 ## Introduction of tGPT
 
