@@ -38,6 +38,7 @@ scanpy==1.9.1
 import re
 import os
 import sys
+import gzip
 import torch
 import numpy as np
 import pandas as pd
@@ -55,9 +56,9 @@ from transformers import PreTrainedTokenizerFast, GPT2LMHeadModel, GPT2Model
 device = "cuda" if torch.cuda.is_available() else "cpu" 
 tokenizer_file = "lixiangchun/transcriptome-gpt-1024-8-16-64" 
 checkpoint = "lixiangchun/transcriptome-gpt-1024-8-16-64" ## Pretrained model
-celltype_path = "./data/labels.txt" ## Cell type annotation
+celltype_path = "./data/Muris_cell_labels.txt.gz" ## Cell type annotation
 max_len = 64 ## Number of top genes used for analysis
-text_file = "./data/gene_rank_Muris.txt"  ## Gene symbols ranked by exprssion counts
+text_file = "./data/Muris_gene_rankings.txt.gz"  ## Gene symbols ranked by exprssion counts
 ```
 
 
@@ -80,7 +81,7 @@ model = model.to(device)
 model.eval()
 
 text_file = text_file
-lines = [s.strip() for s in open(text_file)]
+lines = [s.decode().strip() for s in gzip.open(text_file, "r").readlines()]
 
 ds = LineDataset(lines)
 dl = DataLoader(ds, batch_size=64)
