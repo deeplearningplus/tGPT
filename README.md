@@ -116,6 +116,7 @@ adata.obs["celltype"] = adata.obs["celltype"].astype("category")
 
 sc.pp.neighbors(adata,n_neighbors=20)
 sc.tl.leiden(adata,resolution=0.6)
+#recommends parameters, n_neighbors=15~30, resolution=0.4~0.6.
 sc.tl.umap(adata)
 
 #################  Cell Type  #######################
