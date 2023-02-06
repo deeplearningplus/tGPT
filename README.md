@@ -2,7 +2,7 @@
 
 ## tGPT
 
-Code and models from the paper ["Generative pretraining from large-scale transcriptomes: Implications for single-cell deciphering and clinical translation"](https://www.biorxiv.org/content/10.1101/2022.01.31.478596v1.full).
+["Generative pretraining from large-scale transcriptomes: Implications for single-cell deciphering and clinical translation"](https://www.biorxiv.org/content/10.1101/2022.01.31.478596v1.full).
 
 ## Introduction of tGPT
 
@@ -20,7 +20,7 @@ This figure consists of three components: development of tGPT, applications of t
 
 
 ## The following packages are required:
-
+The following example was tested with:
 ```
 python==3.7.11 
 numpy==1.20.0
@@ -55,10 +55,13 @@ from transformers import PreTrainedTokenizerFast, GPT2LMHeadModel, GPT2Model
 ```python
 device = "cuda" if torch.cuda.is_available() else "cpu" 
 tokenizer_file = "lixiangchun/transcriptome-gpt-1024-8-16-64" 
-checkpoint = "lixiangchun/transcriptome-gpt-1024-8-16-64" ## Pretrained model
+## Pretrained model with sequence of 62 top expressing genes.
+checkpoint = "lixiangchun/transcriptome-gpt-1024-8-16-64"
+## Pretrained model with sequence of 126 top expressing genes.
+#checkpoint = "lixiangchun/transcriptome-gpt-1024-8-16-64"
 celltype_path = "./data/Muris_cell_labels.txt.gz" ## Cell type annotation
 max_len = 64 ## Number of top genes used for analysis
-text_file = "./data/Muris_gene_rankings.txt.gz"  ## Gene symbols ranked by exprssion counts
+text_file = "./data/Muris_gene_rankings.txt.gz"  ## Gene symbols ranked by exprssion
 ```
 
 
@@ -80,7 +83,6 @@ model = GPT2LMHeadModel.from_pretrained(checkpoint,output_hidden_states = True).
 model = model.to(device)
 model.eval()
 
-text_file = text_file
 lines = [s.decode().strip() for s in gzip.open(text_file, "r").readlines()]
 
 ds = LineDataset(lines)
@@ -95,28 +97,29 @@ for a in tqdm(dl, total=len(dl)):
 
     with torch.no_grad():
         x = model(**batch)
-        eos_idxs = batch.attention_mask.sum(dim=1) - 1
-        hidden_layer = x.last_hidden_state
-        xx = hidden_layer
-        result_list = [[] for i in range(len(xx))]
 
-        for j, item in enumerate(xx):
-            result_list[j] = item[1:int(eos_idxs[j]),:].mean(dim =0).tolist()
-        Xs.extend(result_list)
+    eos_idxs = batch.attention_mask.sum(dim=1) - 1
+    xx = x.last_hidden_state
+    result_list = [[] for i in range(len(xx))]
+
+    for j, item in enumerate(xx):
+        result_list[j] = item[1:int(eos_idxs[j]),:].mean(dim =0).tolist()
+
+    Xs.extend(result_list)
+
 features = np.stack(Xs)
 ```
 
 ### Visualization
 
 ```python
-adata=sc.AnnData(features)
+adata = sc.AnnData(features)
 celltype = pd.read_csv(celltype_path, header=None)[0].tolist()
 adata.obs["celltype"] = celltype
 adata.obs["celltype"] = adata.obs["celltype"].astype("category")
 
 sc.pp.neighbors(adata,n_neighbors=20)
 sc.tl.leiden(adata,resolution=0.6)
-#recommends parameters, n_neighbors=15~30, resolution=0.4~0.6.
 sc.tl.umap(adata)
 
 #################  Cell Type  #######################
